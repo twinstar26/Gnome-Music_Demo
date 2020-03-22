@@ -1,7 +1,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Grl', '0.3')
-from gi.repository import Gtk, Gdk, Grl, GObject
+from gi.repository import Gtk, Gdk, Grl, GObject, GLib
 from gi.repository import Gio
 
 import sys
@@ -41,10 +41,17 @@ class YouTube():
     def resolve_cb(self, source, operation_id, media, user_data, error):
         if (error):
             print("ERROR WHILE RESOLVING")
+        
+        print(source)
+        print(operation_id)
+        print(media)
+        print(user_data)
+        print(error)
+        
         url = Grl.Media.get_url(media)
         print(url)
 
-    def search_cb(self, source, browse_id, media, remaining, error):
+    def search_cb(self, source, browse_id, media, remaining, user_data, error):
 
         if (error):
             print("ERROR WHILE SEARCHING")
@@ -54,11 +61,18 @@ class YouTube():
             return
 
         if (media):
+            print(source)
+            print(browse_id)
+            print(media)
+            print(remaining)
+            print(user_data)
+            print(error)
             title = Grl.Media.get_title(media)
             url = Grl.Media.get_url(media)
             if (url):
                 print("TITLE IS " + str(title))
                 print("URL IS " + str(url))
+                exit()
             else:
                 print("TRYING WITH SLOW KEYS")
                 KEYS = [Grl.METADATA_KEY_INVALID, Grl.METADATA_KEY_URL]
@@ -82,9 +96,12 @@ class YouTube():
             self.options = Grl.OperationOptions.new(self.caps)
             self.options.set_count(5)
             self.options.set_resolution_flags(Grl.ResolutionFlags.IDLE_RELAY | Grl.ResolutionFlags.FAST_ONLY)
-            source.search("cars", self.METADATA_KEYS, self.options, self.search_cb, None)
+            source.search("rock", self.METADATA_KEYS, self.options, self.search_cb, None)
 
-j = YouTube()
+if __name__=="__main__": 
+    j = YouTube()
+    loop = GLib.MainLoop.new(None, False)
+    loop.run()
 
 
     # text (str) – the text to search
