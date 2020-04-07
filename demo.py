@@ -1,11 +1,8 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
-from gi.repository import Gio
-from gi.repository import Pango
-
+from gi.repository import Gtk, Gdk, GObject, Gio, Pango
 import sys
-
+import grilo
 
 class Gmenu(Gio.MenuModel):
     def __init__(self, app):
@@ -37,9 +34,10 @@ class MyWindow(Gtk.ApplicationWindow):
         self.connect("key-release-event", self._on_key_release)
         self.query = str()
 
+        self.youtube = grilo.YouTube()
+
         self.columns = ["SONGS FOUND"]
-        # this will come from grilo backend
-        self.phonebook = [["song1"], ["song2"], ["song3"], ["song4"]]
+        self.phonebook = [["Please enter search query into search bar"]]
 
         self.listmodel = Gtk.ListStore(str)
         for i in range(len(self.phonebook)):
@@ -76,7 +74,28 @@ class MyWindow(Gtk.ApplicationWindow):
         if keyname == 'Return':
             print("Query entered is >> " + str(self.query))
             self.searchbar.set_visible(True)
-            # grilo code goes over here
+            search_list = self.youtube.query_triggered(self.query)
+            phonebook = []
+            for s in search_list:
+                phonebook.append([s])
+
+            self.listmodel.clear()
+
+            for i in range(len(phonebook)):
+                self.listmodel.append(phonebook[i])
+
+            self.view = Gtk.TreeView(model=self.listmodel)
+            for i, column in enumerate(self.columns):
+                cell = Gtk.CellRendererText()
+                if i == 0:
+                    cell.props.weight_set = True
+                    cell.props.weight = Pango.Weight.BOLD
+                col = Gtk.TreeViewColumn(column, cell, text=i)
+                self.view.append_column(col)
+
+            # self.view.get_selection().connect("changed", self.on_changed)
+
+
 
         elif keyname == "space":
             self.query += " "
@@ -87,7 +106,6 @@ class MyWindow(Gtk.ApplicationWindow):
         else:
             if str(keyname).isalpha():
                 self.query += str(keyname)
-                # print(self.query)
                 
 class MyApplication(Gtk.Application):
 
